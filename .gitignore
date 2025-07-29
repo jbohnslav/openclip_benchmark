@@ -8,3 +8,12 @@ wheels/
 
 # Virtual environments
 .venv
+
+uv.lock
+
+# Generated files (keep analysis CSVs for public viewing)
+results.csv
+results/
+*.log
+
+CLAUDE.md
