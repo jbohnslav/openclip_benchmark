@@ -41,18 +41,27 @@ def parse_result_filename(filename: str) -> dict[str, str] | None:
         logger.warning(f"Unexpected filename format: {filename}")
         return None
 
-    # Extract task type (classification or retrieval)
+    # Extract task type (zeroshot_classification or zeroshot_retrieval)
     task_type = None
     if "classification" in parts:
-        task_type = "classification"
+        task_type = "zeroshot_classification"
     elif "retrieval" in parts:
-        task_type = "retrieval"
+        task_type = "zeroshot_retrieval"
     else:
         logger.warning(f"Could not determine task type from filename: {filename}")
         return None
 
-    # Find the benchmark (first part)
+    # Find the benchmark - handle multi-part benchmark names
     benchmark = parts[0]
+
+    # Check for multi-part benchmark names (like mscoco_captions)
+    if len(parts) > 1 and parts[1] in ["captions"]:
+        benchmark = f"{parts[0]}_{parts[1]}"
+        # Remove the consumed part
+        parts = [benchmark] + parts[2:]
+
+    # Keep the original benchmark name for retrieval tasks
+    # The mapping system will handle webdataset format internally
 
     # Find pretrained and model - they're typically together
     # Look for common pretrained patterns
@@ -117,15 +126,52 @@ def get_openclip_models():
     return [(model, pretrained_name) for model, pretrained_name in pretrained]
 
 
+def load_dataset_mapping():
+    """Load dataset mapping from JSON file"""
+    import json
+    from pathlib import Path
+
+    mapping_file = Path(__file__).parent / "dataset_mapping.json"
+    with open(mapping_file) as f:
+        return json.load(f)
+
+
+def get_dataset_config(dataset_name: str, task_type: str) -> dict:
+    """Get dataset configuration from mapping"""
+    dataset_mapping = load_dataset_mapping()
+
+    if task_type == "zeroshot_retrieval":
+        return dataset_mapping["retrieval_datasets"].get(
+            dataset_name,
+            {
+                "webdataset_name": dataset_name,
+                "dataset_root": "root",
+                "task": task_type,
+            },
+        )
+    else:
+        return dataset_mapping["classification_datasets"].get(
+            dataset_name,
+            {
+                "webdataset_name": dataset_name,
+                "dataset_root": "root",
+                "task": task_type,
+            },
+        )
+
+
 def get_benchmark_datasets():
     """Get zero-shot classification and retrieval benchmarks from CLIP Benchmark"""
     from clip_benchmark.cli import dataset_collection
 
+    # Load dataset mapping
+    dataset_mapping = load_dataset_mapping()
+
     # Get all classification benchmarks from vtab+ collection
     classification_benchmarks = dataset_collection["vtab+"]
 
-    # Get retrieval benchmarks
-    retrieval_benchmarks = dataset_collection["retrieval"]
+    # Get retrieval benchmarks from mapping (use the original names, not webdataset names)
+    retrieval_benchmarks = list(dataset_mapping["retrieval_datasets"].keys())
 
     # Add additional classification datasets not in vtab+
     additional_classification = [
@@ -148,7 +194,6 @@ def get_benchmark_datasets():
 
     # Remove duplicates and sort
     classification_benchmarks = sorted(set(classification_benchmarks))
-    retrieval_benchmarks = sorted(set(retrieval_benchmarks))
 
     return classification_benchmarks, retrieval_benchmarks
 
@@ -159,8 +204,8 @@ def generate_pairs_dataframe():
     classification_benchmarks, retrieval_benchmarks = get_benchmark_datasets()
 
     all_benchmarks = [
-        ("classification", bench) for bench in classification_benchmarks
-    ] + [("retrieval", bench) for bench in retrieval_benchmarks]
+        ("zeroshot_classification", bench) for bench in classification_benchmarks
+    ] + [("zeroshot_retrieval", bench) for bench in retrieval_benchmarks]
 
     rows = []
     for model, pretrained in models:
@@ -445,7 +490,7 @@ def parse_results(output_format: str = "separate") -> None:
             "benchmark_run_at": row["timestamp"],  # When the benchmark was completed
         }
 
-        if row["task_type"] == "classification":
+        if row["task_type"] == "zeroshot_classification":
             # Extract classification metrics
             metrics = data.get("metrics", {})
             classification_data.append(
@@ -457,7 +502,7 @@ def parse_results(output_format: str = "separate") -> None:
                 }
             )
 
-        elif row["task_type"] == "retrieval":
+        elif row["task_type"] == "zeroshot_retrieval":
             # Extract retrieval metrics
             metrics = data.get("metrics", {})
             retrieval_data.append(
@@ -500,7 +545,7 @@ def parse_results(output_format: str = "separate") -> None:
         if classification_data:
             classification_df = pl.DataFrame(classification_data).with_columns(
                 [
-                    pl.lit("classification").alias("task_type"),
+                    pl.lit("zeroshot_classification").alias("task_type"),
                     pl.lit(None).alias("image_retrieval_recall_at_5"),
                     pl.lit(None).alias("text_retrieval_recall_at_5"),
                     pl.lit(None).alias("mean_average_precision"),
@@ -511,7 +556,7 @@ def parse_results(output_format: str = "separate") -> None:
         if retrieval_data:
             retrieval_df = pl.DataFrame(retrieval_data).with_columns(
                 [
-                    pl.lit("retrieval").alias("task_type"),
+                    pl.lit("zeroshot_retrieval").alias("task_type"),
                     pl.lit(None).alias("accuracy"),
                     pl.lit(None).alias("top5_accuracy"),
                     pl.lit(None).alias("mean_per_class_recall"),

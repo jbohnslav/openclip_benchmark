@@ -1,0 +1,33 @@
+resources:
+  # 1x NVIDIA A100 GPU
+  accelerators: A100:1
+
+  autostop: true  # Stop after default idle minutes (5).
+
+# Working directory (optional) containing the project codebase.
+# Its contents are synced to ~/sky_workdir/ on the cluster.
+workdir: .
+
+# Typical use: pip install -r requirements.txt
+# Invoked under the workdir (i.e., can use its files).
+setup: |
+  echo "Running setup."
+  uv sync
+
+# Interactive setup - SSH in to run benchmarks manually
+run: |
+  echo "Interactive cluster ready!"
+  echo "SSH in with: sky ssh interactive"
+  echo "Then run benchmarks manually using:"
+  echo ""
+  echo "Classification:"
+  echo "  uv run clip_benchmark eval --pretrained_model MODEL,PRETRAINED --dataset DATASET --task zeroshot_classification --output '/openclip_results/{dataset}_{pretrained}_{model}_{language}_{task}.json'"
+  echo ""
+  echo "Retrieval (use webdataset format):"
+  echo "  uv run clip_benchmark eval --pretrained_model MODEL,PRETRAINED --dataset wds/DATASET --dataset_root 'https://huggingface.co/datasets/clip-benchmark/wds_{dataset_cleaned}/tree/main' --task zeroshot_retrieval --output '/openclip_results/{dataset}_{pretrained}_{model}_{language}_{task}.json'"
+
+# Create an empty r2 bucket
+file_mounts:
+  /openclip_results:
+    name: openclip-results
+    store: r2 

@@ -15,18 +15,24 @@ uv sync
 # Initialize benchmark tracking (9,000+ model-dataset pairs)
 uv run benchmark_tracker.py init
 
-# Deploy benchmarks to cloud (uses GPU via SkyPilot)
-sky launch -c openclip-benchmark configs/hello-sky.yaml
+# Launch interactive cluster for manual benchmarking
+sky launch -c interactive configs/interactive.yaml
 
 # SSH into the cluster and run benchmarks manually
-sky launch -c debug configs/hello-sky.yaml
-ssh debug
+sky ssh interactive
 
 # On the remote machine:
-source .venv/bin/activate
+# Classification example:
 uv run clip_benchmark eval --pretrained_model ViT-B-32,openai \
     --dataset cifar10 \
     --task zeroshot_classification \
+    --output "/openclip_results/{dataset}_{pretrained}_{model}_{language}_{task}.json"
+
+# Retrieval example (webdataset format):
+uv run clip_benchmark eval --pretrained_model ViT-B-32,openai \
+    --dataset wds/mscoco_captions \
+    --dataset_root "https://huggingface.co/datasets/clip-benchmark/wds_mscoco_captions/tree/main" \
+    --task zeroshot_retrieval \
     --output "/openclip_results/{dataset}_{pretrained}_{model}_{language}_{task}.json"
 
 # Sync results from R2 and update tracking
@@ -47,7 +53,7 @@ uv run benchmark_tracker.py parse
 ## Files
 
 - `benchmark_tracker.py` - Main tracking system
-- `configs/hello-sky.yaml` - SkyPilot configuration for GPU deployment
+- `configs/interactive.yaml` - SkyPilot configuration for interactive GPU cluster
 - `results.csv` - Tracking file with benchmark completion status
 - `classification_metrics.csv` - Parsed classification benchmark results
 

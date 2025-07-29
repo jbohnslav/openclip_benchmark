@@ -1,0 +1,226 @@
+{
+  "retrieval_datasets": {
+    "mscoco_captions": {
+      "webdataset_name": "wds/mscoco_captions",
+      "dataset_root": "https://huggingface.co/datasets/clip-benchmark/wds_mscoco_captions/tree/main",
+      "task": "zeroshot_retrieval"
+    },
+    "mscoco_captions2017": {
+      "webdataset_name": "wds/mscoco_captions2017",
+      "dataset_root": "https://huggingface.co/datasets/clip-benchmark/wds_mscoco_captions2017/tree/main",
+      "task": "zeroshot_retrieval"
+    },
+    "flickr30k": {
+      "webdataset_name": "wds/flickr30k",
+      "dataset_root": "https://huggingface.co/datasets/clip-benchmark/wds_flickr30k/tree/main",
+      "task": "zeroshot_retrieval"
+    },
+    "flickr8k": {
+      "webdataset_name": "wds/flickr8k",
+      "dataset_root": "https://huggingface.co/datasets/clip-benchmark/wds_flickr8k/tree/main",
+      "task": "zeroshot_retrieval"
+    }
+  },
+  "classification_datasets": {
+    "cars": {
+      "webdataset_name": "wds/cars",
+      "dataset_root": "https://huggingface.co/datasets/clip-benchmark/wds_cars/tree/main",
+      "task": "zeroshot_classification"
+    },
+    "country211": {
+      "webdataset_name": "wds/country211",
+      "dataset_root": "https://huggingface.co/datasets/clip-benchmark/wds_country211/tree/main",
+      "task": "zeroshot_classification"
+    },
+    "fgvc_aircraft": {
+      "webdataset_name": "wds/fgvc_aircraft",
+      "dataset_root": "https://huggingface.co/datasets/clip-benchmark/wds_fgvc_aircraft/tree/main",
+      "task": "zeroshot_classification"
+    },
+    "gtsrb": {
+      "webdataset_name": "wds/gtsrb",
+      "dataset_root": "https://huggingface.co/datasets/clip-benchmark/wds_gtsrb/tree/main",
+      "task": "zeroshot_classification"
+    },
+    "imagenet1k": {
+      "webdataset_name": "wds/imagenet1k",
+      "dataset_root": "https://huggingface.co/datasets/clip-benchmark/wds_imagenet1k/tree/main",
+      "task": "zeroshot_classification"
+    },
+    "imagenet-a": {
+      "webdataset_name": "wds/imagenet-a",
+      "dataset_root": "https://huggingface.co/datasets/clip-benchmark/wds_imagenet-a/tree/main",
+      "task": "zeroshot_classification"
+    },
+    "imagenet-o": {
+      "webdataset_name": "wds/imagenet-o",
+      "dataset_root": "https://huggingface.co/datasets/clip-benchmark/wds_imagenet-o/tree/main",
+      "task": "zeroshot_classification"
+    },
+    "imagenet-r": {
+      "webdataset_name": "wds/imagenet-r",
+      "dataset_root": "https://huggingface.co/datasets/clip-benchmark/wds_imagenet-r/tree/main",
+      "task": "zeroshot_classification"
+    },
+    "imagenet_sketch": {
+      "webdataset_name": "wds/imagenet_sketch",
+      "dataset_root": "https://huggingface.co/datasets/clip-benchmark/wds_imagenet_sketch/tree/main",
+      "task": "zeroshot_classification"
+    },
+    "imagenetv2": {
+      "webdataset_name": "wds/imagenetv2",
+      "dataset_root": "https://huggingface.co/datasets/clip-benchmark/wds_imagenetv2/tree/main",
+      "task": "zeroshot_classification"
+    },
+    "mnist": {
+      "webdataset_name": "wds/mnist",
+      "dataset_root": "https://huggingface.co/datasets/clip-benchmark/wds_mnist/tree/main",
+      "task": "zeroshot_classification"
+    },
+    "objectnet": {
+      "webdataset_name": "wds/objectnet",
+      "dataset_root": "https://huggingface.co/datasets/clip-benchmark/wds_objectnet/tree/main",
+      "task": "zeroshot_classification"
+    },
+    "renderedsst2": {
+      "webdataset_name": "wds/renderedsst2",
+      "dataset_root": "https://huggingface.co/datasets/clip-benchmark/wds_renderedsst2/tree/main",
+      "task": "zeroshot_classification"
+    },
+    "stl10": {
+      "webdataset_name": "wds/stl10",
+      "dataset_root": "https://huggingface.co/datasets/clip-benchmark/wds_stl10/tree/main",
+      "task": "zeroshot_classification"
+    },
+    "sun397": {
+      "webdataset_name": "wds/sun397",
+      "dataset_root": "https://huggingface.co/datasets/clip-benchmark/wds_sun397/tree/main",
+      "task": "zeroshot_classification"
+    },
+    "voc2007": {
+      "webdataset_name": "wds/voc2007",
+      "dataset_root": "https://huggingface.co/datasets/clip-benchmark/wds_voc2007/tree/main",
+      "task": "zeroshot_classification"
+    },
+    "caltech101": {
+      "webdataset_name": "wds/vtab-caltech101",
+      "dataset_root": "https://huggingface.co/datasets/clip-benchmark/wds_vtab-caltech101/tree/main",
+      "task": "zeroshot_classification"
+    },
+    "cifar10": {
+      "webdataset_name": "wds/vtab-cifar10",
+      "dataset_root": "https://huggingface.co/datasets/clip-benchmark/wds_vtab-cifar10/tree/main",
+      "task": "zeroshot_classification"
+    },
+    "cifar100": {
+      "webdataset_name": "wds/vtab-cifar100",
+      "dataset_root": "https://huggingface.co/datasets/clip-benchmark/wds_vtab-cifar100/tree/main",
+      "task": "zeroshot_classification"
+    },
+    "clevr_closest_object_distance": {
+      "webdataset_name": "wds/vtab-clevr_closest_object_distance",
+      "dataset_root": "https://huggingface.co/datasets/clip-benchmark/wds_vtab-clevr_closest_object_distance/tree/main",
+      "task": "zeroshot_classification"
+    },
+    "clevr_count_all": {
+      "webdataset_name": "wds/vtab-clevr_count_all",
+      "dataset_root": "https://huggingface.co/datasets/clip-benchmark/wds_vtab-clevr_count_all/tree/main",
+      "task": "zeroshot_classification"
+    },
+    "dmlab": {
+      "webdataset_name": "wds/vtab-dmlab",
+      "dataset_root": "https://huggingface.co/datasets/clip-benchmark/wds_vtab-dmlab/tree/main",
+      "task": "zeroshot_classification"
+    },
+    "dsprites_label_orientation": {
+      "webdataset_name": "wds/vtab-dsprites_label_orientation",
+      "dataset_root": "https://huggingface.co/datasets/clip-benchmark/wds_vtab-dsprites_label_orientation/tree/main",
+      "task": "zeroshot_classification"
+    },
+    "dsprites_label_x_position": {
+      "webdataset_name": "wds/vtab-dsprites_label_x_position",
+      "dataset_root": "https://huggingface.co/datasets/clip-benchmark/wds_vtab-dsprites_label_x_position/tree/main",
+      "task": "zeroshot_classification"
+    },
+    "dsprites_label_y_position": {
+      "webdataset_name": "wds/vtab-dsprites_label_y_position",
+      "dataset_root": "https://huggingface.co/datasets/clip-benchmark/wds_vtab-dsprites_label_y_position/tree/main",
+      "task": "zeroshot_classification"
+    },
+    "dtd": {
+      "webdataset_name": "wds/vtab-dtd",
+      "dataset_root": "https://huggingface.co/datasets/clip-benchmark/wds_vtab-dtd/tree/main",
+      "task": "zeroshot_classification"
+    },
+    "eurosat": {
+      "webdataset_name": "wds/vtab-eurosat",
+      "dataset_root": "https://huggingface.co/datasets/clip-benchmark/wds_vtab-eurosat/tree/main",
+      "task": "zeroshot_classification"
+    },
+    "flowers": {
+      "webdataset_name": "wds/vtab-flowers",
+      "dataset_root": "https://huggingface.co/datasets/clip-benchmark/wds_vtab-flowers/tree/main",
+      "task": "zeroshot_classification"
+    },
+    "kitti_closest_vehicle_distance": {
+      "webdataset_name": "wds/vtab-kitti_closest_vehicle_distance",
+      "dataset_root": "https://huggingface.co/datasets/clip-benchmark/wds_vtab-kitti_closest_vehicle_distance/tree/main",
+      "task": "zeroshot_classification"
+    },
+    "pcam": {
+      "webdataset_name": "wds/vtab-pcam",
+      "dataset_root": "https://huggingface.co/datasets/clip-benchmark/wds_vtab-pcam/tree/main",
+      "task": "zeroshot_classification"
+    },
+    "pets": {
+      "webdataset_name": "wds/vtab-pets",
+      "dataset_root": "https://huggingface.co/datasets/clip-benchmark/wds_vtab-pets/tree/main",
+      "task": "zeroshot_classification"
+    },
+    "resisc45": {
+      "webdataset_name": "wds/vtab-resisc45",
+      "dataset_root": "https://huggingface.co/datasets/clip-benchmark/wds_vtab-resisc45/tree/main",
+      "task": "zeroshot_classification"
+    },
+    "smallnorb_label_azimuth": {
+      "webdataset_name": "wds/vtab-smallnorb_label_azimuth",
+      "dataset_root": "https://huggingface.co/datasets/clip-benchmark/wds_vtab-smallnorb_label_azimuth/tree/main",
+      "task": "zeroshot_classification"
+    },
+    "smallnorb_label_elevation": {
+      "webdataset_name": "wds/vtab-smallnorb_label_elevation",
+      "dataset_root": "https://huggingface.co/datasets/clip-benchmark/wds_vtab-smallnorb_label_elevation/tree/main",
+      "task": "zeroshot_classification"
+    },
+    "svhn": {
+      "webdataset_name": "wds/vtab-svhn",
+      "dataset_root": "https://huggingface.co/datasets/clip-benchmark/wds_vtab-svhn/tree/main",
+      "task": "zeroshot_classification"
+    },
+    "fer2013": {
+      "webdataset_name": "wds/fer2013",
+      "dataset_root": "https://huggingface.co/datasets/clip-benchmark/wds_fer2013/tree/main",
+      "task": "zeroshot_classification"
+    },
+    "diabetic_retinopathy": {
+      "webdataset_name": "wds/vtab-diabetic_retinopathy",
+      "dataset_root": "https://huggingface.co/datasets/clip-benchmark/wds_vtab-diabetic_retinopathy/tree/main",
+      "task": "zeroshot_classification"
+    },
+    "voc2007_multilabel": {
+      "webdataset_name": "wds/voc2007_multilabel",
+      "dataset_root": "https://huggingface.co/datasets/clip-benchmark/wds_voc2007_multilabel/tree/main",
+      "task": "zeroshot_classification"
+    },
+    "food101": {
+      "webdataset_name": "wds/food101",
+      "dataset_root": "https://huggingface.co/datasets/clip-benchmark/wds_food101/tree/main",
+      "task": "zeroshot_classification"
+    },
+    "sun397_official_splits": {
+      "webdataset_name": "wds/sun397_official_splits",
+      "dataset_root": "https://huggingface.co/datasets/clip-benchmark/wds_sun397_official_splits/tree/main",
+      "task": "zeroshot_classification"
+    }
+  }
+}
