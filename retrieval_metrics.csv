@@ -1,0 +1,2 @@
+model,pretrained,benchmark,benchmark_run_at,image_retrieval_recall_at_5,text_retrieval_recall_at_5,mean_average_precision
+ViT-B-32,openai,mscoco_captions,2025-07-29T16:19:35,0.5497800707817078,0.7333999872207642,
