@@ -1,0 +1,24 @@
+name: experiment-eva-mscoco-spot
+
+resources:
+  accelerators: A100:1
+  use_spot: true 
+
+workdir: .
+
+setup: |
+  uv sync
+
+run: |
+  uv run clip_benchmark eval \
+    --pretrained_model EVA01-g-14,laion400m_s11b_b41k \
+    --dataset wds/mscoco_captions \
+    --dataset_root "https://huggingface.co/datasets/clip-benchmark/wds_mscoco_captions/tree/main" \
+    --task zeroshot_retrieval \
+    --batch_size 16 \
+    --output "/openclip_results/{dataset}_{pretrained}_{model}_{language}_{task}.json"
+
+file_mounts:
+  /openclip_results:
+    name: openclip-results
+    store: r2
