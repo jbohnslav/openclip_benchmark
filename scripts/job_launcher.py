@@ -99,20 +99,16 @@ def create_job_task(benchmark: dict, template: dict) -> sky.Task:
         task=benchmark["task_type"],  # For output filename
     )
 
-    task = sky.Task(
-        name=task_name,
-        setup=template["setup"],
-        run=run_command,
-        workdir=".",
+    # Create task from YAML dict including file_mounts
+    task = sky.Task.from_yaml_config(
+        {
+            "name": task_name,
+            "setup": template["setup"],
+            "run": run_command,
+            "workdir": ".",
+            "file_mounts": template.get("file_mounts", {}),
+        }
     )
-
-    # Set up R2 storage mount
-    storage = sky.Storage(
-        name="openclip-results",
-        source=None,
-        stores=[sky.StoreType.R2],
-    )
-    task.set_file_mounts({"/openclip_results": storage})
 
     # Set resources
     task.set_resources(
@@ -162,8 +158,6 @@ def submit_job_batch(
             sky.jobs.launch(
                 task,
                 name=task.name,
-                retry_until_up=True,
-                detach_run=True,
             )
             launched_jobs.append(task.name)
 
