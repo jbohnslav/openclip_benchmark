@@ -51,14 +51,9 @@ def sync_to_r2(output_dir: str) -> bool:
         True if sync succeeded, False otherwise
     """
     try:
-        # Debug: check what env vars we actually have
         r2_endpoint = os.environ.get("R2_ENDPOINT_URL", "")
-        if not r2_endpoint or r2_endpoint == "${R2_ENDPOINT_URL}":
-            print(f"  Warning: R2_ENDPOINT_URL not properly set: '{r2_endpoint}'")
-            print(
-                "  Available env vars:",
-                [k for k in os.environ.keys() if "R2" in k or "AWS" in k],
-            )
+        if not r2_endpoint:
+            print("  Warning: R2_ENDPOINT_URL not set")
             return False
 
         cmd = [

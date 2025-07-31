@@ -116,9 +116,6 @@ def create_grouped_job_task(group: dict, max_benchmarks: int = None) -> sky.Task
         }
     )
 
-    # Debug: print what envs will be passed
-    print(f"  Debug - Task envs: {task.envs if hasattr(task, 'envs') else 'Not set'}")
-    print(f"  Debug - Run command: {run_cmd[:80]}...")
 
     return task
 
@@ -205,17 +202,6 @@ def main():
                 "No AWS credentials found. Run `aws configure --profile r2` to set them."
             )
 
-    # Debug: print what R2 credentials are available
-    print("\nR2 credentials check:")
-    print(
-        f"  R2_ENDPOINT_URL: {'Set' if os.environ.get('R2_ENDPOINT_URL') else 'Not set'}"
-    )
-    print(
-        f"  AWS_ACCESS_KEY_ID: {'Set' if os.environ.get('AWS_ACCESS_KEY_ID') else 'Not set'}"
-    )
-    print(
-        f"  AWS_SECRET_ACCESS_KEY: {'Set' if os.environ.get('AWS_SECRET_ACCESS_KEY') else 'Not set'}"
-    )
 
     # Check files
     template_path = Path("configs/grouped_job_template.yaml")
