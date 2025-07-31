@@ -7,7 +7,7 @@ Tracks completion status and parses results.
 import argparse
 import logging
 
-from openclip_benchmark.tracking import (
+from clip_eval_runner.tracking import (
     init_tracking,
     parse_results,
     sync_r2_results,

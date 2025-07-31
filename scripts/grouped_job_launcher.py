@@ -20,8 +20,8 @@ import boto3
 import polars as pl
 import sky
 
-from openclip_benchmark import get_model_gpu_requirement
-from openclip_benchmark.config import RESULTS_CSV
+from clip_eval_runner import get_model_gpu_requirement
+from clip_eval_runner.config import RESULTS_CSV
 
 
 def load_pending_groups(max_groups: int = None) -> list[dict]:

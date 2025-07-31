@@ -15,8 +15,8 @@ from pathlib import Path
 
 import polars as pl
 
-from openclip_benchmark.config import RESULTS_CSV
-from openclip_benchmark.datasets import get_dataset_config
+from clip_eval_runner.config import RESULTS_CSV
+from clip_eval_runner.datasets import get_dataset_config
 
 
 def check_r2_credentials():
