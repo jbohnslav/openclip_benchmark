@@ -37,10 +37,10 @@ run: |
     --dataset_root "https://huggingface.co/datasets/clip-benchmark/wds_mscoco_captions/tree/main" \
     --task zeroshot_retrieval \
     --batch_size 16 \
-    --output "/openclip_results/{dataset}_{pretrained}_{model}_{language}_{task}.json"
+    --output "/clip_eval_runner_results/{dataset}_{pretrained}_{model}_{language}_{task}.json"
   
   end_time=$(date +%s)
   runtime=$((end_time - start_time))
   echo "Benchmark completed in $runtime seconds ($((runtime / 60)) minutes)"
-  echo "Result saved to: /openclip_results/{dataset}_{pretrained}_{model}_{language}_{task}.json"
+  echo "Result saved to: /clip_eval_runner_results/{dataset}_{pretrained}_{model}_{language}_{task}.json"
 

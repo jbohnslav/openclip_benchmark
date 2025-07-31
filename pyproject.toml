@@ -1,5 +1,5 @@
 [project]
-name = "openclip-benchmark"
+name = "clip-eval-runner"
 version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
@@ -16,6 +16,9 @@ dependencies = [
     "boto3>=1.39.16",
 ]
 
+[project.scripts]
+clipeval = "clip_eval_runner.cli:main"
+
 [build-system]
 requires = [
     "setuptools",
@@ -24,7 +27,7 @@ requires = [
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools]
-packages = ["openclip_benchmark"]
+packages = ["clip_eval_runner"]
 
 [dependency-groups]
 dev = [

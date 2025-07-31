@@ -401,7 +401,7 @@ RN50x64,openai,zeroshot_retrieval,flickr30k,"","",pending
 RN50x64,openai,zeroshot_retrieval,flickr8k,"","",pending
 ViT-B-32,openai,zeroshot_classification,caltech101,"","",pending
 ViT-B-32,openai,zeroshot_classification,cars,"","",pending
-ViT-B-32,openai,zeroshot_classification,cifar10,results/cifar10_openai_ViT-B-32_en_zeroshot_classification.json,2025-07-29T13:58:14,completed
+ViT-B-32,openai,zeroshot_classification,cifar10,"","",pending
 ViT-B-32,openai,zeroshot_classification,cifar100,"","",pending
 ViT-B-32,openai,zeroshot_classification,country211,"","",pending
 ViT-B-32,openai,zeroshot_classification,dtd,"","",pending
@@ -445,7 +445,7 @@ ViT-B-32,openai,zeroshot_classification,vtab/resisc45,"","",pending
 ViT-B-32,openai,zeroshot_classification,vtab/smallnorb_label_azimuth,"","",pending
 ViT-B-32,openai,zeroshot_classification,vtab/smallnorb_label_elevation,"","",pending
 ViT-B-32,openai,zeroshot_classification,vtab/svhn,"","",pending
-ViT-B-32,openai,zeroshot_retrieval,mscoco_captions,results/mscoco_captions_openai_ViT-B-32_en_zeroshot_retrieval.json,2025-07-29T16:19:35,completed
+ViT-B-32,openai,zeroshot_retrieval,mscoco_captions,"","",pending
 ViT-B-32,openai,zeroshot_retrieval,mscoco_captions2017,"","",pending
 ViT-B-32,openai,zeroshot_retrieval,flickr30k,"","",pending
 ViT-B-32,openai,zeroshot_retrieval,flickr8k,"","",pending
@@ -8351,7 +8351,7 @@ RN50x64-quickgelu,openai,zeroshot_retrieval,flickr30k,"","",pending
 RN50x64-quickgelu,openai,zeroshot_retrieval,flickr8k,"","",pending
 ViT-B-32-quickgelu,openai,zeroshot_classification,caltech101,"","",pending
 ViT-B-32-quickgelu,openai,zeroshot_classification,cars,"","",pending
-ViT-B-32-quickgelu,openai,zeroshot_classification,cifar10,results/cifar10_openai_ViT-B-32-quickgelu_en_zeroshot_classification.json,2025-07-29T14:15:52,completed
+ViT-B-32-quickgelu,openai,zeroshot_classification,cifar10,"","",pending
 ViT-B-32-quickgelu,openai,zeroshot_classification,cifar100,"","",pending
 ViT-B-32-quickgelu,openai,zeroshot_classification,country211,"","",pending
 ViT-B-32-quickgelu,openai,zeroshot_classification,dtd,"","",pending
