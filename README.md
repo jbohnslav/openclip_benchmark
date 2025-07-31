@@ -149,6 +149,27 @@ uv run python scripts/grouped_job_launcher.py                        # Launch al
 
 RunPod doesn't support storage mounting, so we write results locally and sync to R2 after completion. This workaround enables access to cheap RunPod spot instances ($0.33/hr) instead of more expensive alternatives ($1.29/hr+).
 
+## SkyPilot Environment Variables
+
+When passing environment variables to cloud jobs, SkyPilot requires using `task.update_envs()` instead of YAML placeholders. The correct pattern:
+
+```python
+# In grouped_job_launcher.py
+task.update_envs({
+    "R2_ENDPOINT_URL": os.environ.get("R2_ENDPOINT_URL"),
+    "AWS_ACCESS_KEY_ID": os.environ.get("AWS_ACCESS_KEY_ID"),
+    "AWS_SECRET_ACCESS_KEY": os.environ.get("AWS_SECRET_ACCESS_KEY"),
+})
+```
+
+The YAML template should use empty strings for environment variables:
+```yaml
+envs:
+  R2_ENDPOINT_URL: ""
+  AWS_ACCESS_KEY_ID: ""
+  AWS_SECRET_ACCESS_KEY: ""
+```
+
 ## Safety Features
 
 - Dry-run mode for testing
@@ -156,3 +177,4 @@ RunPod doesn't support storage mounting, so we write results locally and sync to
 - Automatic spot instance usage for cost savings
 - Resource cleanup after job completion
 - Efficient grouped processing to minimize GPU time
+- Incremental R2 syncing after each benchmark for fault tolerance

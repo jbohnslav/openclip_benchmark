@@ -18,8 +18,8 @@ resources:
   # Try all cloud and spot combinations
   any_of:
     - {infra: lambda, use_spot: false}  # Lambda doesn't support spot
-    - {infra: runpod, use_spot: true}
-    - {infra: runpod, use_spot: false}
+    # - {infra: runpod, use_spot: true}   # Temporarily disabled - hanging issue
+    # - {infra: runpod, use_spot: false}  # Temporarily disabled - hanging issue
     - {infra: nebius, use_spot: false}  # Nebius doesn't support spot
   
   disk_size: 50
@@ -48,6 +48,8 @@ run: |
     {max_benchmarks_flag}
 
 envs:
-  # Model information for debugging
-  MODEL: {model}
-  PRETRAINED: {pretrained}
+  # R2 credentials - these must be set in your environment before launching
+  # SkyPilot will automatically pass through these from your local environment
+  R2_ENDPOINT_URL: ""
+  AWS_ACCESS_KEY_ID: ""
+  AWS_SECRET_ACCESS_KEY: ""

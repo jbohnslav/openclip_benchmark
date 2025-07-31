@@ -11,18 +11,17 @@ Usage:
 """
 
 import argparse
+import os
+import random
 import sys
 from pathlib import Path
 
+import boto3
 import polars as pl
 import sky
-import yaml
 
 from openclip_benchmark import get_model_gpu_requirement
-from openclip_benchmark.config import (
-    DEFAULT_DISK_SIZE,
-    RESULTS_CSV,
-)
+from openclip_benchmark.config import RESULTS_CSV
 
 
 def load_pending_groups(max_groups: int = None) -> list[dict]:
@@ -49,12 +48,18 @@ def load_pending_groups(max_groups: int = None) -> list[dict]:
         .sort("model", "pretrained")
     )
 
+    # Convert to list for shuffling
+    groups_list = groups.to_dicts()
+
+    # Randomize order to test different models
+    random.shuffle(groups_list)
+
     if max_groups:
-        groups = groups.head(max_groups)
+        groups_list = groups_list[:max_groups]
 
     # Convert to list of dicts with additional metadata
     group_list = []
-    for row in groups.iter_rows(named=True):
+    for row in groups_list:
         model_req = get_model_gpu_requirement(row["model"])
 
         group_list.append(
@@ -73,71 +78,70 @@ def load_pending_groups(max_groups: int = None) -> list[dict]:
     return group_list
 
 
-def create_grouped_job_task(group: dict, template: dict, max_benchmarks: int = None) -> sky.Task:
+def create_grouped_job_task(group: dict, max_benchmarks: int = None) -> sky.Task:
     """Create SkyPilot task for a model group."""
     # Create task name
     task_name = f"openclip-group-{group['model']}-{group['pretrained']}".replace(
         "/", "-"
     )
 
-    # Check if template resources need GPU configs to be generated
-    resources = template["resources"].copy()
+    # Load base task from template
+    task = sky.Task.from_yaml("configs/grouped_job_template.yaml")
+    task.name = task_name
 
-    # If resources contains placeholder for GPU configs, generate them
-    if "any_of" in resources and resources["any_of"] == "{gpu_configs}":
-        # Generate GPU configurations programmatically
-        gpu_configs = generate_gpu_configs()
-        resources["any_of"] = gpu_configs
+    model = group["model"]
+    pretrained = group["pretrained"]
+    max_benchmarks_flag = f"--max-benchmarks {max_benchmarks}" if max_benchmarks else ""
 
-    # Handle disk_size substitution
-    if "disk_size" in resources:
-        if resources["disk_size"] == "{disk_size}":
-            resources["disk_size"] = DEFAULT_DISK_SIZE
+    # Create run command with proper formatting
+    run_cmd = (
+        "uv run python scripts/run_benchmark_group.py "
+        f'--model "{model}" '
+        f'--pretrained "{pretrained}" '
+        '--output-dir "$HOME/openclip_results"'
+    )
+    if max_benchmarks_flag:
+        run_cmd += f" {max_benchmarks_flag}"
 
-    # Create task config with template substitutions
-    task_config = {
-        "name": task_name,
-        "resources": resources,
-        "setup": template["setup"],
-        "run": template["run"].format(
-            model=group["model"],
-            pretrained=group["pretrained"],
-            max_benchmarks_flag=f"--max-benchmarks {max_benchmarks}" if max_benchmarks else "",
-        ),
-        "workdir": template.get("workdir", "."),
-        "file_mounts": template.get("file_mounts", {}),
-    }
+    task.run = run_cmd
 
-    # Add envs if present in template
-    if "envs" in template:
-        task_config["envs"] = {}
-        for k, v in template["envs"].items():
-            if isinstance(v, str):
-                task_config["envs"][k] = v.format(
-                    model=group["model"], pretrained=group["pretrained"]
-                )
-            else:
-                task_config["envs"][k] = v
+    # Update environment variables with model info and R2 credentials
+    task.update_envs(
+        {
+            "MODEL": model,
+            "PRETRAINED": pretrained,
+            "R2_ENDPOINT_URL": os.environ.get("R2_ENDPOINT_URL"),
+            "AWS_ACCESS_KEY_ID": os.environ.get("AWS_ACCESS_KEY_ID"),
+            "AWS_SECRET_ACCESS_KEY": os.environ.get("AWS_SECRET_ACCESS_KEY"),
+        }
+    )
 
-    # Create task from the config (this includes the resources from the template)
-    task = sky.Task.from_yaml_config(task_config)
+    # Debug: print what envs will be passed
+    print(f"  Debug - Task envs: {task.envs if hasattr(task, 'envs') else 'Not set'}")
+    print(f"  Debug - Run command: {run_cmd[:80]}...")
 
     return task
 
 
 def submit_group_jobs(
-    groups: list[dict], template: dict, dry_run: bool = False, max_benchmarks: int = None
+    groups: list[dict],
+    dry_run: bool = False,
+    max_benchmarks: int = None,
 ) -> list[str]:
     """Submit grouped jobs."""
     launched_jobs = []
 
     for i, group in enumerate(groups):
-        actual_benchmarks = min(group['num_benchmarks'], max_benchmarks) if max_benchmarks else group['num_benchmarks']
+        actual_benchmarks = (
+            min(group["num_benchmarks"], max_benchmarks)
+            if max_benchmarks
+            else group["num_benchmarks"]
+        )
         print(
             f"\n[{i + 1}/{len(groups)}] {group['model']}/{group['pretrained']} ({actual_benchmarks} benchmarks)"
         )
 
-        task = create_grouped_job_task(group, template, max_benchmarks)
+        task = create_grouped_job_task(group, max_benchmarks)
 
         if dry_run:
             print(f"  [DRY RUN] Would launch: {task.name}")
@@ -180,6 +184,39 @@ def main():
 
     args = parser.parse_args()
 
+    # Check R2 credentials are set locally (SkyPilot will pass them through)
+    if not os.environ.get("R2_ENDPOINT_URL"):
+        raise ValueError(
+            "R2_ENDPOINT_URL is not set. Run `export R2_ENDPOINT_URL='https://...'` to set it."
+        )
+
+    # Try to load from AWS profile 'r2' if not already in environment
+    if not os.environ.get("AWS_ACCESS_KEY_ID") or not os.environ.get(
+        "AWS_SECRET_ACCESS_KEY"
+    ):
+        session = boto3.Session(profile_name="r2")
+        credentials = session.get_credentials()
+        if credentials:
+            os.environ["AWS_ACCESS_KEY_ID"] = credentials.access_key
+            os.environ["AWS_SECRET_ACCESS_KEY"] = credentials.secret_key
+            print("Loaded AWS credentials from profile 'r2'")
+        else:
+            raise ValueError(
+                "No AWS credentials found. Run `aws configure --profile r2` to set them."
+            )
+
+    # Debug: print what R2 credentials are available
+    print("\nR2 credentials check:")
+    print(
+        f"  R2_ENDPOINT_URL: {'Set' if os.environ.get('R2_ENDPOINT_URL') else 'Not set'}"
+    )
+    print(
+        f"  AWS_ACCESS_KEY_ID: {'Set' if os.environ.get('AWS_ACCESS_KEY_ID') else 'Not set'}"
+    )
+    print(
+        f"  AWS_SECRET_ACCESS_KEY: {'Set' if os.environ.get('AWS_SECRET_ACCESS_KEY') else 'Not set'}"
+    )
+
     # Check files
     template_path = Path("configs/grouped_job_template.yaml")
     if not template_path.exists():
@@ -190,9 +227,8 @@ def main():
         print(f"ERROR: Results CSV not found: {RESULTS_CSV}")
         sys.exit(1)
 
-    # Load template
-    with open(template_path) as f:
-        template = yaml.safe_load(f)
+    # Template is now loaded directly in create_grouped_job_task
+    # Just verify it exists above
 
     # Load pending groups
     groups = load_pending_groups(args.max_jobs)
@@ -225,7 +261,7 @@ def main():
             return
 
     # Submit
-    launched = submit_group_jobs(groups, template, args.dry_run, args.max_benchmarks)
+    launched = submit_group_jobs(groups, args.dry_run, args.max_benchmarks)
 
     if args.dry_run:
         print(f"\n[DRY RUN] Would launch {len(launched)} job groups")
