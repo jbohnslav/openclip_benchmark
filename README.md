@@ -1,6 +1,6 @@
-# OpenCLIP Benchmark
+# CLIP Eval Runner
 
-A distributed benchmarking system for evaluating OpenCLIP models on zero-shot classification and retrieval tasks using SkyPilot managed jobs.
+A distributed evaluation orchestration system for running OpenCLIP models on zero-shot classification and retrieval tasks using SkyPilot managed jobs. Includes the `clipeval` command-line interface for streamlined workflow management.
 
 ## Overview
 
@@ -10,34 +10,61 @@ This project benchmarks all available OpenCLIP models across multiple datasets u
 
 ### Install Dependencies
 
+**Method 1: Using uv (recommended for this project)**
 ```bash
 uv sync
 ```
 
+**Method 2: Using virtual environment**
+```bash
+# Create and activate virtual environment
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+pip install -e .
+```
+
 ### Initialize Benchmark Tracking
 
+**With uv:**
 ```bash
 # Generate all model-benchmark pairs (9,250+ combinations)
-uv run benchmark_tracker.py init
+uv run clipeval track init
+```
+
+**With virtual environment:**
+```bash
+# After activating venv (source venv/bin/activate)
+clipeval track init
 ```
 
 ### Option 1: Grouped Managed Jobs (Recommended)
 
+**With uv:**
 ```bash
 # Preview jobs without launching (dry-run)
-uv run python scripts/grouped_job_launcher.py --dry-run
+uv run clipeval launch-managed --dry-run
 
 # Launch a specific number of job groups
-uv run python scripts/grouped_job_launcher.py --max-jobs 10
+uv run clipeval launch-managed --max-jobs 10
 
 # Monitor running jobs
 sky jobs queue
 
 # Sync results and update tracking
-uv run benchmark_tracker.py update --sync
+uv run clipeval track update --sync
 
 # Generate analysis CSVs
-uv run benchmark_tracker.py parse
+uv run clipeval track parse
+```
+
+**With virtual environment:**
+```bash
+# After activating venv (source venv/bin/activate)
+clipeval launch-managed --dry-run
+clipeval launch-managed --max-jobs 10
+sky jobs queue
+clipeval track update --sync
+clipeval track parse
 ```
 
 ### Option 2: Manual Interactive Benchmarking
@@ -53,14 +80,56 @@ sky ssh interactive
 uv run clip_benchmark eval --pretrained_model ViT-B-32,openai \
     --dataset cifar10 \
     --task zeroshot_classification \
-    --output "/openclip_results/{dataset}_{pretrained}_{model}_{language}_{task}.json"
+    --output "/clip_eval_runner_results/{dataset}_{pretrained}_{model}_{language}_{task}.json"
 
 # Retrieval example (webdataset format):
 uv run clip_benchmark eval --pretrained_model ViT-B-32,openai \
     --dataset wds/mscoco_captions \
     --dataset_root "https://huggingface.co/datasets/clip-benchmark/wds_mscoco_captions/tree/main" \
     --task zeroshot_retrieval \
-    --output "/openclip_results/{dataset}_{pretrained}_{model}_{language}_{task}.json"
+    --output "/clip_eval_runner_results/{dataset}_{pretrained}_{model}_{language}_{task}.json"
+```
+
+## CLIP Eval Runner CLI Commands
+
+The new `clipeval` command provides a unified interface for all operations:
+
+### Tracking Commands
+```bash
+clipeval track init          # Initialize model-benchmark pairs
+clipeval track init --reset  # Reset and regenerate all pairs
+clipeval track sync          # Download results from R2 bucket
+clipeval track update        # Update tracking from local results
+clipeval track update --sync # Sync from R2 first, then update
+clipeval track parse         # Generate analysis CSV files
+clipeval track parse --format merged  # Single combined CSV
+```
+
+### Launch Commands
+```bash
+# Managed jobs (recommended)
+clipeval launch-managed --dry-run          # Preview jobs
+clipeval launch-managed --max-jobs 10      # Launch 10 job groups
+clipeval launch-managed --max-benchmarks 5 # Limit benchmarks per job (testing)
+
+# Cluster execution (for shared resources)
+clipeval launch-cluster --cluster my-cluster --dry-run
+clipeval launch-cluster --cluster my-cluster --max-jobs 5
+clipeval launch-cluster --cluster my-cluster --gpu-fraction 0.25
+```
+
+### Legacy Scripts (Backward Compatibility)
+
+The original scripts are still available:
+```bash
+# Legacy tracking
+uv run benchmark_tracker.py init
+uv run benchmark_tracker.py update --sync
+uv run benchmark_tracker.py parse
+
+# Legacy job launching
+uv run python scripts/grouped_job_launcher.py --dry-run
+uv run python scripts/submit_to_cluster.py --cluster my-cluster
 ```
 
 ## Architecture
@@ -68,8 +137,9 @@ uv run clip_benchmark eval --pretrained_model ViT-B-32,openai \
 ### Module Structure
 
 ```
-openclip_benchmark/
+clip_eval_runner/
 ├── __init__.py          # Package exports
+├── cli.py              # CLIP Eval Runner CLI interface
 ├── config.py           # Configuration constants
 ├── datasets.py         # Dataset mapping and configuration
 ├── models.py           # OpenCLIP model utilities and metadata
@@ -77,11 +147,13 @@ openclip_benchmark/
 └── utils.py            # Shared utilities
 
 scripts/
-├── grouped_job_launcher.py  # Grouped job submission (efficient)
+├── grouped_job_launcher.py  # Grouped job submission (legacy)
+├── submit_to_cluster.py     # Submit jobs to existing cluster (legacy)
 └── run_benchmark_group.py   # Runs all benchmarks for a model
 
 configs/
 ├── grouped_job_template.yaml  # Template for grouped jobs
+├── cluster_8xh100.yaml        # Cluster configuration
 ├── interactive.yaml           # Interactive cluster configuration
 └── experiment_spot.yaml       # Example single experiment config
 ```
