@@ -109,6 +109,11 @@ def run_single_benchmark(
         dataset_name = dataset_info.get("webdataset_name", benchmark)
         dataset_root = dataset_info.get("dataset_root", "auto")
 
+        # Create unique cache directory per dataset to avoid noisy neighbor issues
+        # Each dataset gets its own subdirectory: ~/.cache/webdataset/dataset_name/
+        wds_cache_dir = os.path.expanduser(f"~/.cache/webdataset/{benchmark}")
+        os.makedirs(wds_cache_dir, exist_ok=True)
+
         cmd = [
             "uv",
             "run",
@@ -124,6 +129,8 @@ def run_single_benchmark(
             task_type,
             "--batch_size",
             "16",  # Default batch size
+            "--wds_cache_dir",
+            wds_cache_dir,  # Unique cache dir per dataset
             "--output",
             str(output_file),
         ]
