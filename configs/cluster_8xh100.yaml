@@ -1,4 +1,4 @@
-name: openclip-cluster
+name: clip-eval-runner-cluster
 
 resources:
   accelerators: H100:8
@@ -17,7 +17,7 @@ setup: |
   uv sync
   
   # Create output directory
-  mkdir -p ~/openclip_results
+  mkdir -p ~/clip_eval_runner_results
   
   # Ensure shared cache directories exist
   mkdir -p ~/.cache/huggingface

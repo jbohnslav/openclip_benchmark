@@ -1,4 +1,4 @@
-name: openclip-group-{job_id}
+name: clip-eval-runner-group-{job_id}
 
 resources:
   # Let SkyPilot find the best available GPU across all clouds
@@ -36,7 +36,7 @@ setup: |
   rm -rf awscliv2.zip aws/
   
   # Create local output directory
-  mkdir -p ~/openclip_results
+  mkdir -p ~/clip_eval_runner_results
 
 run: |
   # Always write to local directory
@@ -44,7 +44,7 @@ run: |
   uv run python scripts/run_benchmark_group.py \
     --model "{model}" \
     --pretrained "{pretrained}" \
-    --output-dir "$HOME/openclip_results" \
+    --output-dir "$HOME/clip_eval_runner_results" \
     {max_benchmarks_flag}
 
 envs:

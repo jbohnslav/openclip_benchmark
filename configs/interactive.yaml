@@ -38,9 +38,9 @@ run: |
   echo "Then run benchmarks manually using:"
   echo ""
   echo "Classification:"
-  echo "  uv run clip_benchmark eval --pretrained_model MODEL,PRETRAINED --dataset DATASET --task zeroshot_classification --output '/openclip_results/{dataset}_{pretrained}_{model}_{language}_{task}.json'"
+  echo "  uv run clip_benchmark eval --pretrained_model MODEL,PRETRAINED --dataset DATASET --task zeroshot_classification --output '/clip_eval_runner_results/{dataset}_{pretrained}_{model}_{language}_{task}.json'"
   echo ""
   echo "Retrieval (use webdataset format):"
-  echo "  uv run clip_benchmark eval --pretrained_model MODEL,PRETRAINED --dataset wds/DATASET --dataset_root 'https://huggingface.co/datasets/clip-benchmark/wds_{dataset_cleaned}/tree/main' --task zeroshot_retrieval --output '/openclip_results/{dataset}_{pretrained}_{model}_{language}_{task}.json'"
+  echo "  uv run clip_benchmark eval --pretrained_model MODEL,PRETRAINED --dataset wds/DATASET --dataset_root 'https://huggingface.co/datasets/clip-benchmark/wds_{dataset_cleaned}/tree/main' --task zeroshot_retrieval --output '/clip_eval_runner_results/{dataset}_{pretrained}_{model}_{language}_{task}.json'"
 
  
