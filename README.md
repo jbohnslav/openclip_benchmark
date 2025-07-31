@@ -145,6 +145,10 @@ uv run python scripts/grouped_job_launcher.py                        # Launch al
   - `AWS_SECRET_ACCESS_KEY`
   - `R2_ENDPOINT_URL`
 
+## RunPod Storage Note
+
+RunPod doesn't support storage mounting, so we write results locally and sync to R2 after completion. This workaround enables access to cheap RunPod spot instances ($0.33/hr) instead of more expensive alternatives ($1.29/hr+).
+
 ## Safety Features
 
 - Dry-run mode for testing
