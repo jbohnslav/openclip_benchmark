@@ -1,0 +1,26 @@
+name: openclip-cluster
+
+resources:
+  accelerators: H100:8
+  disk_size: 500  # Large disk for dataset cache
+  
+  # Prefer clouds with good 8xH100 availability
+  any_of:
+    - {cloud: lambda}
+    - {cloud: runpod}
+    - {cloud: nebius}
+
+workdir: .
+
+setup: |
+  # Install dependencies
+  uv sync
+  
+  # Create output directory
+  mkdir -p ~/openclip_results
+  
+  # Ensure shared cache directories exist
+  mkdir -p ~/.cache/huggingface
+  mkdir -p ~/.cache/webdataset
+
+# No run command - this is just to launch the cluster

@@ -116,7 +116,6 @@ def create_grouped_job_task(group: dict, max_benchmarks: int = None) -> sky.Task
         }
     )
 
-
     return task
 
 
@@ -201,7 +200,6 @@ def main():
             raise ValueError(
                 "No AWS credentials found. Run `aws configure --profile r2` to set them."
             )
-
 
     # Check files
     template_path = Path("configs/grouped_job_template.yaml")
