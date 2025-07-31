@@ -28,21 +28,24 @@ workdir: .
 
 setup: |
   uv sync
+  
+  # Install AWS CLI v2
+  curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+  unzip awscliv2.zip
+  sudo ./aws/install
+  rm -rf awscliv2.zip aws/
+  
   # Create local output directory
   mkdir -p ~/openclip_results
 
 run: |
   # Always write to local directory
+  # Results are synced to R2 after each benchmark for fault tolerance
   uv run python scripts/run_benchmark_group.py \
     --model "{model}" \
     --pretrained "{pretrained}" \
-    --output-dir "$HOME/openclip_results"
-  
-  # Sync results to R2
-  echo "Syncing results to R2..."
-  aws s3 sync ~/openclip_results/ s3://openclip-results/ \
-    --endpoint-url $R2_ENDPOINT_URL \
-    --region auto
+    --output-dir "$HOME/openclip_results" \
+    {max_benchmarks_flag}
 
 envs:
   # Model information for debugging

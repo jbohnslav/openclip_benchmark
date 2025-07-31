@@ -19,7 +19,6 @@ import sky
 import yaml
 
 from openclip_benchmark import get_model_gpu_requirement
-from openclip_benchmark.cloud_gpus import generate_gpu_configs
 from openclip_benchmark.config import (
     DEFAULT_DISK_SIZE,
     RESULTS_CSV,
@@ -74,7 +73,7 @@ def load_pending_groups(max_groups: int = None) -> list[dict]:
     return group_list
 
 
-def create_grouped_job_task(group: dict, template: dict) -> sky.Task:
+def create_grouped_job_task(group: dict, template: dict, max_benchmarks: int = None) -> sky.Task:
     """Create SkyPilot task for a model group."""
     # Create task name
     task_name = f"openclip-group-{group['model']}-{group['pretrained']}".replace(
@@ -103,6 +102,7 @@ def create_grouped_job_task(group: dict, template: dict) -> sky.Task:
         "run": template["run"].format(
             model=group["model"],
             pretrained=group["pretrained"],
+            max_benchmarks_flag=f"--max-benchmarks {max_benchmarks}" if max_benchmarks else "",
         ),
         "workdir": template.get("workdir", "."),
         "file_mounts": template.get("file_mounts", {}),
@@ -126,22 +126,24 @@ def create_grouped_job_task(group: dict, template: dict) -> sky.Task:
 
 
 def submit_group_jobs(
-    groups: list[dict], template: dict, dry_run: bool = False
+    groups: list[dict], template: dict, dry_run: bool = False, max_benchmarks: int = None
 ) -> list[str]:
     """Submit grouped jobs."""
     launched_jobs = []
 
     for i, group in enumerate(groups):
+        actual_benchmarks = min(group['num_benchmarks'], max_benchmarks) if max_benchmarks else group['num_benchmarks']
         print(
-            f"\n[{i + 1}/{len(groups)}] {group['model']}/{group['pretrained']} ({group['num_benchmarks']} benchmarks)"
+            f"\n[{i + 1}/{len(groups)}] {group['model']}/{group['pretrained']} ({actual_benchmarks} benchmarks)"
         )
 
-        task = create_grouped_job_task(group, template)
+        task = create_grouped_job_task(group, template, max_benchmarks)
 
         if dry_run:
             print(f"  [DRY RUN] Would launch: {task.name}")
+            estimated_runtime = actual_benchmarks * 2  # ~2 min per benchmark
             print(
-                f"  GPU: {group['gpu_requirement']}, Runtime: ~{group['estimated_runtime_minutes']}min"
+                f"  GPU: {group['gpu_requirement']}, Runtime: ~{estimated_runtime}min"
             )
             launched_jobs.append(task.name)
         else:
@@ -162,6 +164,12 @@ def main():
         "--max-jobs",
         type=int,
         help="Maximum number of job groups to launch",
+    )
+
+    parser.add_argument(
+        "--max-benchmarks",
+        type=int,
+        help="Maximum number of benchmarks per group (for testing)",
     )
 
     parser.add_argument(
@@ -217,7 +225,7 @@ def main():
             return
 
     # Submit
-    launched = submit_group_jobs(groups, template, args.dry_run)
+    launched = submit_group_jobs(groups, template, args.dry_run, args.max_benchmarks)
 
     if args.dry_run:
         print(f"\n[DRY RUN] Would launch {len(launched)} job groups")

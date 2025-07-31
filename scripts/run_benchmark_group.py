@@ -7,6 +7,7 @@ efficiently by loading the model once and running all benchmarks sequentially.
 """
 
 import argparse
+import os
 import subprocess
 import sys
 import time
@@ -18,12 +19,65 @@ from openclip_benchmark.config import RESULTS_CSV
 from openclip_benchmark.datasets import get_dataset_config
 
 
+def check_r2_credentials():
+    """
+    Check if R2 credentials are configured.
+
+    Raises:
+        SystemExit if credentials are missing
+    """
+    missing = []
+
+    if not os.environ.get("R2_ENDPOINT_URL"):
+        missing.append("R2_ENDPOINT_URL")
+    if not os.environ.get("AWS_ACCESS_KEY_ID"):
+        missing.append("AWS_ACCESS_KEY_ID")
+    if not os.environ.get("AWS_SECRET_ACCESS_KEY"):
+        missing.append("AWS_SECRET_ACCESS_KEY")
+
+    if missing:
+        print("ERROR: Missing R2 credentials:")
+        for var in missing:
+            print(f"  - {var}")
+        print("\nPlease set these environment variables before running.")
+        sys.exit(1)
+
+
+def sync_to_r2(output_dir: str) -> bool:
+    """
+    Sync results to R2 bucket.
+
+    Returns:
+        True if sync succeeded, False otherwise
+    """
+    try:
+        cmd = [
+            "aws", "s3", "sync",
+            output_dir,
+            "s3://openclip-results/",
+            "--endpoint-url", os.environ["R2_ENDPOINT_URL"],
+            "--region", "auto"
+        ]
+
+        result = subprocess.run(cmd, capture_output=True, text=True)
+
+        if result.returncode == 0:
+            return True
+        else:
+            print(f"  Warning: R2 sync failed: {result.stderr}")
+            return False
+    except Exception as e:
+        print(f"  Warning: R2 sync exception: {str(e)}")
+        return False
+
+
 def run_single_benchmark(
     model: str,
     pretrained: str,
     benchmark: str,
     task_type: str,
     output_dir: str,
+    sync_after_each: bool = True,
 ) -> dict:
     """
     Run a single benchmark and save results.
@@ -74,6 +128,16 @@ def run_single_benchmark(
 
         if result.returncode == 0:
             print(f"✓ Completed in {runtime:.1f}s: {output_file.name}")
+
+            # Sync to R2 after successful benchmark
+            if sync_after_each:
+                print("  Syncing to R2...")
+                sync_success = sync_to_r2(output_dir)
+                if sync_success:
+                    print("  ✓ Synced to R2")
+                else:
+                    print("  ⚠ R2 sync failed, but result saved locally")
+
             return {
                 "status": "completed",
                 "result_file": str(output_file),
@@ -105,8 +169,22 @@ def main():
     parser.add_argument(
         "--output-dir", required=True, help="Output directory for results"
     )
+    parser.add_argument(
+        "--max-benchmarks",
+        type=int,
+        help="Maximum number of benchmarks to run (for testing)",
+    )
+    parser.add_argument(
+        "--no-sync",
+        action="store_true",
+        help="Disable syncing to R2 after each benchmark",
+    )
 
     args = parser.parse_args()
+
+    # Check R2 credentials if syncing is enabled
+    if not args.no_sync:
+        check_r2_credentials()
 
     # Start overall timer
     overall_start = time.time()
@@ -125,6 +203,11 @@ def main():
     if not benchmarks:
         print(f"No pending benchmarks found for {args.model}/{args.pretrained}")
         return
+
+    # Limit benchmarks if requested
+    if args.max_benchmarks:
+        benchmarks = benchmarks[:args.max_benchmarks]
+        print(f"\nLimiting to first {args.max_benchmarks} benchmarks (for testing)")
 
     print(
         f"\nProcessing {len(benchmarks)} benchmarks for {args.model}/{args.pretrained}"
@@ -147,6 +230,7 @@ def main():
             benchmark=benchmark["benchmark"],
             task_type=benchmark["task_type"],
             output_dir=args.output_dir,
+            sync_after_each=not args.no_sync,
         )
 
         if result["status"] != "completed":
@@ -173,6 +257,14 @@ def main():
         print(f"\n⚠️  {failed} benchmarks failed")
     else:
         print("\n✅ All benchmarks completed successfully")
+
+    # Final sync to ensure everything is uploaded
+    if not args.no_sync:
+        print("\nPerforming final R2 sync...")
+        if sync_to_r2(args.output_dir):
+            print("✓ Final sync completed")
+        else:
+            print("⚠ Final sync failed")
 
     # Exit with error if any failed
     sys.exit(1 if failed > 0 else 0)

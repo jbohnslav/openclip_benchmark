@@ -13,6 +13,5 @@ uv.lock
 
 # Generated files (keep analysis CSVs for public viewing)
 results/
-*.log
 
 CLAUDE.md
