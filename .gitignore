@@ -12,7 +12,6 @@ wheels/
 uv.lock
 
 # Generated files (keep analysis CSVs for public viewing)
-results.csv
 results/
 *.log
 

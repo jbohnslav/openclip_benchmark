@@ -15,6 +15,16 @@ dependencies = [
     "awscli>=1.41.16",
 ]
 
+[build-system]
+requires = [
+    "setuptools",
+    "wheel"
+]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+packages = ["openclip_benchmark"]
+
 [dependency-groups]
 dev = [
     "ruff>=0.12.5",

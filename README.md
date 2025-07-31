@@ -21,14 +21,14 @@ uv sync
 uv run benchmark_tracker.py init
 ```
 
-### Option 1: Automated Managed Jobs (Recommended)
+### Option 1: Grouped Managed Jobs (Recommended)
 
 ```bash
 # Preview jobs without launching (dry-run)
-uv run python scripts/job_launcher.py --batch-size 10 --dry-run
+uv run python scripts/grouped_job_launcher.py --dry-run
 
-# Launch actual jobs after review
-uv run python scripts/job_launcher.py --batch-size 10
+# Launch a specific number of job groups
+uv run python scripts/grouped_job_launcher.py --max-jobs 10
 
 # Monitor running jobs
 sky jobs queue
@@ -77,21 +77,24 @@ openclip_benchmark/
 └── utils.py            # Shared utilities
 
 scripts/
-└── job_launcher.py     # Managed job submission system
+├── grouped_job_launcher.py  # Grouped job submission (efficient)
+└── run_benchmark_group.py   # Runs all benchmarks for a model
 
 configs/
-├── managed_job_template.yaml  # SkyPilot managed job template
-└── interactive.yaml           # Interactive cluster configuration
+├── grouped_job_template.yaml  # Template for grouped jobs
+├── interactive.yaml           # Interactive cluster configuration
+└── experiment_spot.yaml       # Example single experiment config
 ```
 
 ### Key Features
 
-**Managed Job System:**
+**Grouped Job System:**
 
-- Simple batch job submission with cost estimation
+- Efficient batch processing by grouping benchmarks per model
+- Loads model once and runs all benchmarks sequentially
 - GPU requirement detection based on model architecture
-- Budget limits and confirmation prompts
 - Automatic resource cleanup after completion
+- Timing information for each benchmark and total runtime
 
 **Model Metadata:**
 
@@ -117,12 +120,12 @@ uv run benchmark_tracker.py update --sync # Sync and update tracking
 uv run benchmark_tracker.py parse         # Generate analysis CSVs
 ```
 
-### Job Launcher
+### Grouped Job Launcher
 
 ```bash
-uv run python scripts/job_launcher.py --batch-size 10 --dry-run      # Preview jobs
-uv run python scripts/job_launcher.py --batch-size 10                # Launch jobs
-uv run python scripts/job_launcher.py --batch-size 20 --budget-limit 50.0  # With budget limit
+uv run python scripts/grouped_job_launcher.py --dry-run              # Preview all pending groups
+uv run python scripts/grouped_job_launcher.py --max-jobs 10          # Launch 10 job groups
+uv run python scripts/grouped_job_launcher.py                        # Launch all pending groups
 ```
 
 ### Key Files
@@ -144,9 +147,8 @@ uv run python scripts/job_launcher.py --batch-size 20 --budget-limit 50.0  # Wit
 
 ## Safety Features
 
-- Maximum 10 jobs by default (expandable to 90)
-- Budget estimation with configurable limits
 - Dry-run mode for testing
 - Confirmation prompts for large batches
 - Automatic spot instance usage for cost savings
 - Resource cleanup after job completion
+- Efficient grouped processing to minimize GPU time

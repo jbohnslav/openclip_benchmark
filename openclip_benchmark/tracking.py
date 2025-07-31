@@ -117,7 +117,7 @@ def sync_r2_results() -> None:
         os.environ.get(
             "R2_ENDPOINT_URL", "https://YOUR_ACCOUNT_ID.r2.cloudflarestorage.com"
         ),
-        "--profile", 
+        "--profile",
         "r2",
     ]
 

@@ -1,0 +1,182 @@
+#!/usr/bin/env python3
+"""
+Run all benchmarks for a specific (model, pretrained) pair.
+
+This script is executed on GPU nodes to process a group of benchmarks
+efficiently by loading the model once and running all benchmarks sequentially.
+"""
+
+import argparse
+import subprocess
+import sys
+import time
+from pathlib import Path
+
+import polars as pl
+
+from openclip_benchmark.config import RESULTS_CSV
+from openclip_benchmark.datasets import get_dataset_config
+
+
+def run_single_benchmark(
+    model: str,
+    pretrained: str,
+    benchmark: str,
+    task_type: str,
+    output_dir: str,
+) -> dict:
+    """
+    Run a single benchmark and save results.
+
+    Returns:
+        Dict with status and result_file path
+    """
+    dataset_info = get_dataset_config(benchmark, task_type)
+
+    # Construct output filename
+    language = "en"  # Default language
+    output_file = (
+        Path(output_dir)
+        / f"{benchmark}_{pretrained}_{model}_{language}_{task_type}.json"
+    )
+
+    try:
+        # Run the benchmark using clip_benchmark CLI
+        # Use webdataset name for retrieval tasks
+        dataset_name = dataset_info.get("webdataset_name", benchmark)
+        dataset_root = dataset_info.get("dataset_root", "auto")
+
+        cmd = [
+            "uv",
+            "run",
+            "clip_benchmark",
+            "eval",
+            "--pretrained_model",
+            f"{model},{pretrained}",
+            "--dataset",
+            dataset_name,
+            "--dataset_root",
+            dataset_root,
+            "--task",
+            task_type,
+            "--batch_size",
+            "16",  # Default batch size
+            "--output",
+            str(output_file),
+        ]
+
+        print(f"Running: {' '.join(cmd)}")
+        start_time = time.time()
+
+        result = subprocess.run(cmd, capture_output=True, text=True)
+
+        runtime = time.time() - start_time
+
+        if result.returncode == 0:
+            print(f"✓ Completed in {runtime:.1f}s: {output_file.name}")
+            return {
+                "status": "completed",
+                "result_file": str(output_file),
+                "runtime_seconds": runtime,
+            }
+        else:
+            print(f"✗ Failed: {result.stderr}")
+            return {
+                "status": "failed",
+                "error": result.stderr,
+                "runtime_seconds": runtime,
+            }
+
+    except Exception as e:
+        print(f"✗ Exception: {str(e)}")
+        return {
+            "status": "failed",
+            "error": str(e),
+        }
+
+
+def main():
+    parser = argparse.ArgumentParser(
+        description="Run all benchmarks for a model/pretrained pair"
+    )
+
+    parser.add_argument("--model", required=True, help="Model name")
+    parser.add_argument("--pretrained", required=True, help="Pretrained weights")
+    parser.add_argument(
+        "--output-dir", required=True, help="Output directory for results"
+    )
+
+    args = parser.parse_args()
+
+    # Start overall timer
+    overall_start = time.time()
+
+    # Load benchmarks for this model/pretrained pair
+    df = pl.read_csv(RESULTS_CSV)
+
+    group_df = df.filter(
+        (pl.col("model") == args.model)
+        & (pl.col("pretrained") == args.pretrained)
+        & (pl.col("status") == "pending")
+    )
+
+    benchmarks = group_df.to_dicts()
+
+    if not benchmarks:
+        print(f"No pending benchmarks found for {args.model}/{args.pretrained}")
+        return
+
+    print(
+        f"\nProcessing {len(benchmarks)} benchmarks for {args.model}/{args.pretrained}"
+    )
+    print("=" * 60)
+
+    # Track results for exit code only
+    failed = 0
+    total_benchmark_time = 0
+
+    # Process each benchmark
+    for i, benchmark in enumerate(benchmarks):
+        print(
+            f"\n[{i + 1}/{len(benchmarks)}] {benchmark['benchmark']} ({benchmark['task_type']})"
+        )
+
+        result = run_single_benchmark(
+            model=args.model,
+            pretrained=args.pretrained,
+            benchmark=benchmark["benchmark"],
+            task_type=benchmark["task_type"],
+            output_dir=args.output_dir,
+        )
+
+        if result["status"] != "completed":
+            failed += 1
+
+        if "runtime_seconds" in result:
+            total_benchmark_time += result["runtime_seconds"]
+
+    # Calculate total time
+    overall_time = time.time() - overall_start
+
+    # Print timing summary
+    print("\n" + "=" * 60)
+    print(f"Completed {len(benchmarks)} benchmarks for {args.model}/{args.pretrained}")
+    print(
+        f"Total benchmark runtime: {total_benchmark_time:.1f} seconds ({total_benchmark_time / 60:.1f} minutes)"
+    )
+    print(
+        f"Total overall runtime: {overall_time:.1f} seconds ({overall_time / 60:.1f} minutes)"
+    )
+    print(f"Overhead time: {overall_time - total_benchmark_time:.1f} seconds")
+
+    if failed > 0:
+        print(f"\n⚠️  {failed} benchmarks failed")
+    else:
+        print("\n✅ All benchmarks completed successfully")
+
+    # Exit with error if any failed
+    sys.exit(1 if failed > 0 else 0)
+
+
+if __name__ == "__main__":
+    main()

@@ -1,8 +1,26 @@
 name: experiment-eva-mscoco-spot
 
 resources:
-  accelerators: A100:1
-  use_spot: true 
+  # Let SkyPilot find the best available GPU across all clouds
+  accelerators: {
+    H200:1,           # 141GB - Best for largest models
+    H100:1,           # 80GB
+    A100-80GB:1,      # 80GB
+    A100:1,           # 40GB
+    L40S:1,           # 48GB
+    L40:1,            # 48GB
+    L4:1,             # 24GB - Minimum for most models
+    RTX6000-Ada:1,    # 48GB
+    RTXA6000:1,       # 48GB
+    RTX4090:1,        # 24GB
+  }
+  
+  # Try all cloud and spot combinations
+  any_of:
+    - {infra: lambda, use_spot: false}  # Lambda doesn't support spot
+    - {infra: runpod, use_spot: true}
+    - {infra: runpod, use_spot: false}
+    - {infra: nebius, use_spot: false}  # Nebius doesn't support spot
 
 workdir: .
 
@@ -10,6 +28,9 @@ setup: |
   uv sync
 
 run: |
+  echo "Starting benchmark: EVA01-g-14/laion400m_s11b_b41k on mscoco_captions (zeroshot_retrieval)"
+  start_time=$(date +%s)
+  
   uv run clip_benchmark eval \
     --pretrained_model EVA01-g-14,laion400m_s11b_b41k \
     --dataset wds/mscoco_captions \
@@ -17,8 +38,9 @@ run: |
     --task zeroshot_retrieval \
     --batch_size 16 \
     --output "/openclip_results/{dataset}_{pretrained}_{model}_{language}_{task}.json"
+  
+  end_time=$(date +%s)
+  runtime=$((end_time - start_time))
+  echo "Benchmark completed in $runtime seconds ($((runtime / 60)) minutes)"
+  echo "Result saved to: /openclip_results/{dataset}_{pretrained}_{model}_{language}_{task}.json"
 
-file_mounts:
-  /openclip_results:
-    name: openclip-results
-    store: r2

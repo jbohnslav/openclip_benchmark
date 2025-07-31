@@ -1,6 +1,23 @@
 resources:
-  # 1x NVIDIA A100 GPU
-  accelerators: A100:1
+  # Let SkyPilot find the best available GPU across all clouds
+  accelerators: {
+    H200:1,           # 141GB - Best for largest models
+    H100:1,           # 80GB
+    A100-80GB:1,      # 80GB
+    A100:1,           # 40GB
+    L40S:1,           # 48GB
+    L40:1,            # 48GB
+    L4:1,             # 24GB - Minimum for most models
+    RTX6000-Ada:1,    # 48GB
+    RTXA6000:1,       # 48GB
+    RTX4090:1,        # 24GB
+  }
+  
+  # Try all clouds - no spot for interactive
+  any_of:
+    - {infra: lambda, use_spot: false}
+    - {infra: runpod, use_spot: false}
+    - {infra: nebius, use_spot: false}
 
   autostop: true  # Stop after default idle minutes (5).
 
@@ -26,8 +43,4 @@ run: |
   echo "Retrieval (use webdataset format):"
   echo "  uv run clip_benchmark eval --pretrained_model MODEL,PRETRAINED --dataset wds/DATASET --dataset_root 'https://huggingface.co/datasets/clip-benchmark/wds_{dataset_cleaned}/tree/main' --task zeroshot_retrieval --output '/openclip_results/{dataset}_{pretrained}_{model}_{language}_{task}.json'"
 
-# Create an empty r2 bucket
-file_mounts:
-  /openclip_results:
-    name: openclip-results
-    store: r2 
+ 
