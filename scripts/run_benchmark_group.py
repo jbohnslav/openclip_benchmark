@@ -14,9 +14,29 @@ import time
 from pathlib import Path
 
 import polars as pl
+from huggingface_hub import login
 
 from clip_eval_runner.config import RESULTS_CSV
 from clip_eval_runner.datasets import get_dataset_config
+
+
+def setup_hf_token():
+    """
+    Set up HuggingFace authentication using HF_TOKEN environment variable.
+    
+    This helps avoid HuggingFace rate limits by authenticating with the Hub.
+    If HF_TOKEN is not set, logs a warning but continues execution.
+    """
+    hf_token = os.environ.get("HF_TOKEN")
+    
+    if hf_token:
+        try:
+            login(token=hf_token)
+            print("✓ HuggingFace authentication configured")
+        except Exception as e:
+            print(f"⚠ Warning: Failed to configure HuggingFace authentication: {str(e)}")
+    else:
+        print("⚠ Warning: HF_TOKEN not set - may encounter HuggingFace rate limits")
 
 
 def check_r2_credentials():
@@ -197,6 +217,9 @@ def main():
     )
 
     args = parser.parse_args()
+
+    # Set up HuggingFace authentication
+    setup_hf_token()
 
     # Check R2 credentials if syncing is enabled
     if not args.no_sync:

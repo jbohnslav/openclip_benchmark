@@ -22,7 +22,7 @@ resources:
     # - {infra: runpod, use_spot: false}  # Temporarily disabled - hanging issue
     - {infra: nebius, use_spot: false}  # Nebius doesn't support spot
   
-  disk_size: 50
+  disk_size: 100
 
 workdir: .
 
@@ -53,3 +53,5 @@ envs:
   R2_ENDPOINT_URL: ""
   AWS_ACCESS_KEY_ID: ""
   AWS_SECRET_ACCESS_KEY: ""
+  HF_TOKEN: ${HF_TOKEN}
+  HF_HUB_OFFLINE: ${HF_HUB_OFFLINE}

@@ -12,15 +12,24 @@ resources:
 
 workdir: .
 
+file_mounts:
+  /openclip_results: 
+    name: openclip-results-bucket
+    mode: MOUNT
+
 setup: |
   # Install dependencies
   uv sync
   
-  # Create output directory
-  mkdir -p ~/clip_eval_runner_results
+  # Create output directory in R2 mount
+  mkdir -p /openclip_results
   
   # Ensure shared cache directories exist
   mkdir -p ~/.cache/huggingface
   mkdir -p ~/.cache/webdataset
 
 # No run command - this is just to launch the cluster
+
+envs:
+  HF_TOKEN: ${HF_TOKEN}
+  HF_HUB_OFFLINE: ${HF_HUB_OFFLINE}

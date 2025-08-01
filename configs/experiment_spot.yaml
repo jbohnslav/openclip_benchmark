@@ -26,6 +26,9 @@ workdir: .
 
 setup: |
   uv sync
+  
+  # Create local output directory
+  mkdir -p ~/clip_eval_runner_results
 
 run: |
   echo "Starting benchmark: EVA01-g-14/laion400m_s11b_b41k on mscoco_captions (zeroshot_retrieval)"
@@ -37,10 +40,14 @@ run: |
     --dataset_root "https://huggingface.co/datasets/clip-benchmark/wds_mscoco_captions/tree/main" \
     --task zeroshot_retrieval \
     --batch_size 16 \
-    --output "/clip_eval_runner_results/{dataset}_{pretrained}_{model}_{language}_{task}.json"
+    --output "$HOME/clip_eval_runner_results/{dataset}_{pretrained}_{model}_{language}_{task}.json"
   
   end_time=$(date +%s)
   runtime=$((end_time - start_time))
   echo "Benchmark completed in $runtime seconds ($((runtime / 60)) minutes)"
-  echo "Result saved to: /clip_eval_runner_results/{dataset}_{pretrained}_{model}_{language}_{task}.json"
+  echo "Result saved to: $HOME/clip_eval_runner_results/{dataset}_{pretrained}_{model}_{language}_{task}.json"
+
+envs:
+  HF_TOKEN: ${HF_TOKEN}
+  HF_HUB_OFFLINE: ${HF_HUB_OFFLINE}
 
